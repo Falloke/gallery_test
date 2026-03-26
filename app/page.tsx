@@ -11,6 +11,8 @@ interface ImageData {
   hashtags: string[];
 }
 
+const ALL_AVAILABLE_TAGS = ['nature', 'city', 'tech', 'animal', 'abstract'];
+
 export default function GalleryPage() {
   const [images, setImages] = useState<ImageData[]>([]);
   const [page, setPage] = useState(1);
@@ -18,10 +20,9 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(10); 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  
-  // 🌟 เพิ่ม State สำหรับปุ่ม Scroll to Top
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // ฟังก์ชันสลับ Tag (เพิ่มเข้า/เอาออก)
   const handleToggleTag = (tag: string) => {
     setSelectedTags(prev => {
       if (prev.includes(tag)) return prev.filter(t => t !== tag);
@@ -29,10 +30,7 @@ export default function GalleryPage() {
     });
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
-  };
-
+  // ฟังก์ชันดึงรูปภาพจาก API
   const fetchImages = async (pageNum: number, tagsArray: string[], isNewSearch: boolean) => {
     if (loading) return; 
     setLoading(true);
@@ -61,19 +59,23 @@ export default function GalleryPage() {
     }
   };
 
+  // 🌟 ดึงข้อมูลใหม่ทันทีเมื่อมีการกดเลือก Tag หรือเปลี่ยนจำนวนแสดงผล
   useEffect(() => {
     setImages([]);
     setPage(1);
     fetchImages(1, selectedTags, true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTags, limit]);
 
+  // ดึงข้อมูลเมื่อเลื่อนหน้าจอ (Infinite Scroll)
   useEffect(() => {
     if (page > 1) { 
       fetchImages(page, selectedTags, false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  // 🌟 เพิ่ม Effect ตรวจจับการเลื่อนหน้าจอ (ให้ปุ่มโผล่มาตอนเลื่อนลงไป 300px)
+  // โชว์ปุ่ม Scroll to Top เมื่อเลื่อนลงมา
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
@@ -104,7 +106,6 @@ export default function GalleryPage() {
     [loading, hasMore]
   );
 
-  // 🌟 ฟังก์ชันเลื่อนกลับขึ้นบนสุด
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -112,15 +113,17 @@ export default function GalleryPage() {
   return (
     <main className="min-h-screen bg-sky-50 pb-20 relative">
       
+      {/* 🌟 ส่ง Props ให้ Navbar โดยตรง (แก้บั๊กกดล้างค่าแล้ว) */}
       <Navbar 
+        allTags={ALL_AVAILABLE_TAGS}
         selectedTags={selectedTags} 
-        onRemoveTag={handleRemoveTag}
-        onClearTags={() => setSelectedTags([])}
+        onToggleTag={handleToggleTag}
+        onClearTags={() => setSelectedTags([])} // ล้างค่า Tag ให้เป็นค่าว่าง
         limit={limit} 
         setLimit={setLimit} 
       />
 
-      <div className="p-4 md:p-8 mt-6 columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+      <div className="p-4 md:p-8 mt-6 columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4 max-w-[1600px] mx-auto">
         {images.map((img, index) => {
           return (
             <div 
@@ -138,7 +141,7 @@ export default function GalleryPage() {
                   <button 
                     key={tag} 
                     onClick={() => handleToggleTag(tag)} 
-                    className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    className={`text-xs font-medium px-2 py-1 rounded-full transition-colors ${
                       selectedTags.includes(tag) ? 'bg-sky-500 text-white shadow-sm' : 'bg-sky-100 text-sky-700 hover:bg-sky-200'
                     }`}
                   >
@@ -164,16 +167,20 @@ export default function GalleryPage() {
             เลื่อนลงเพื่อโหลดภาพชุดต่อไป (ทีละ {limit} รูป)
           </div>
         )}
+
+        {!loading && !hasMore && images.length > 0 && (
+          <div className="text-gray-400 text-sm font-medium">
+            แสดงรูปภาพครบทั้งหมดแล้ว ({images.length} รูป)
+          </div>
+        )}
       </div>
 
-      {/* 🌟 ปุ่ม Scroll to Top มุมขวาล่าง */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
           className="fixed bottom-8 right-8 z-50 p-3 bg-sky-500 text-white rounded-full shadow-lg hover:bg-sky-600 hover:-translate-y-1 transition-all duration-300"
           aria-label="Scroll to top"
         >
-          {/* ไอคอนลูกศรชี้ขึ้น (SVG) */}
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             className="h-6 w-6" 

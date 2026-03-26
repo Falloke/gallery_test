@@ -1,68 +1,85 @@
+"use client";
+
 interface NavbarProps {
+  allTags: string[]; 
   selectedTags: string[];
-  onRemoveTag: (tag: string) => void;
+  onToggleTag: (tag: string) => void; 
   onClearTags: () => void;
   limit: number;
   setLimit: (limit: number) => void;
 }
 
-export default function Navbar({ selectedTags, onRemoveTag, onClearTags, limit, setLimit }: NavbarProps) {
+export default function Navbar({ 
+  allTags, 
+  selectedTags, 
+  onToggleTag, 
+  onClearTags, 
+  limit, 
+  setLimit
+}: NavbarProps) {
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm px-4 md:px-8 py-3 flex flex-col md:flex-row justify-between items-center gap-4 transition-all">
-      <div className="text-xl font-bold text-sky-700 whitespace-nowrap">
-        Gallery
-      </div>
-
-      <div className="flex-1 w-full max-w-2xl flex items-center justify-center">
-        <div className="flex items-center gap-2 bg-sky-50/50 border border-sky-200 rounded-full px-4 py-2 w-full min-h-[44px]">
-          <span className="text-sm text-sky-600 font-medium">Filter:</span>
-          
-          <div className="flex flex-wrap gap-2 flex-1 items-center">
-            {selectedTags.length === 0 && (
-              <span className="text-sm text-gray-400 italic">เลือก Hashtag จากรูปภาพ</span>
-            )}
-            
-            {selectedTags.map(tag => (
-              <span 
-                key={tag} 
-                className="bg-sky-500 text-white px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1 animate-fade-in"
-              >
-                #{tag}
-                <button 
-                  onClick={() => onRemoveTag(tag)}
-                  className="hover:bg-sky-600 rounded-full w-4 h-4 flex items-center justify-center transition-colors"
-                >
-                  &times;
-                </button>
-              </span>
-            ))}
-          </div>
-
-          {selectedTags.length > 0 && (
-            <button 
-              onClick={onClearTags}
-              className="text-xs text-red-400 hover:text-red-500 hover:underline transition-colors whitespace-nowrap pl-2 border-l border-sky-200"
-            >
-              Clear All
-            </button>
-          )}
+    <nav className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-sky-100 shadow-sm px-4 md:px-8 py-3 transition-all">
+      
+      {/* 🌟 รวมทุกอย่างไว้ในแถวเดียว (บนหน้าจอคอม) */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full max-w-[1600px] mx-auto">
+        
+        {/* 1. ซ้ายสุด: โลโก้ (ใช้ shrink-0 เพื่อไม่ให้โดนบีบ) */}
+        <div className="text-2xl font-black text-sky-700 whitespace-nowrap tracking-tight shrink-0">
+          Gallery
         </div>
-      </div>
 
-      <div className="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
-        <label htmlFor="limit-select" className="font-medium">แสดงรูปทีละ:</label>
-        <select 
-          id="limit-select"
-          value={limit}
-          onChange={(e) => setLimit(Number(e.target.value))}
-          className="bg-white border border-sky-200 text-sky-700 rounded-md px-2 py-1 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 cursor-pointer font-medium"
-        >
-          {/* ตัวเลือกสำหรับกำหนด Chunk Size (ดึงทีละกี่รูป) */}
-          <option value={10}>10 รูป</option>
-          <option value={20}>20 รูป</option>
-          <option value={30}>30 รูป</option>
-          <option value={50}>ทั้งหมด</option>
-        </select>
+        {/* 2. ตรงกลาง: คำสำคัญทั้งหมด (ใช้ flex-1 เพื่อให้ขยายเต็มพื้นที่ตรงกลาง) */}
+        <div className="flex-1 flex justify-center items-center gap-3 w-full min-w-0">
+          <span className="text-sm font-bold text-sky-700 whitespace-nowrap hidden lg:block">
+            🔥 คำสำคัญ:
+          </span>
+          
+          <div className="flex overflow-x-auto no-scrollbar items-center gap-2 pb-1">
+            {allTags.map(tag => {
+              const isSelected = selectedTags.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => onToggleTag(tag)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 border ${
+                    isSelected 
+                      ? 'bg-sky-500 text-white border-sky-500 shadow-sm scale-105' 
+                      : 'bg-white text-sky-600 border-sky-200 hover:bg-sky-50 hover:border-sky-300'
+                  }`}
+                >
+                  #{tag}
+                </button>
+              );
+            })}
+
+            {/* ปุ่ม ล้างค่า */}
+            {selectedTags.length > 0 && (
+              <button 
+                onClick={onClearTags}
+                className="text-xs font-bold text-red-500 hover:text-red-600 px-3 py-1 ml-1 border-l border-sky-200 transition-colors whitespace-nowrap"
+              >
+                ล้างค่า ({selectedTags.length})
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 3. ขวาสุด: ตัวเลือกแสดงรูป (Limit) */}
+        <div className="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100 shrink-0">
+          <label htmlFor="limit-select" className="font-medium text-sky-700">แสดงทีละ:</label>
+          <select 
+            id="limit-select"
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+            className="bg-transparent text-sky-700 outline-none cursor-pointer font-bold"
+          >
+            <option value={10}>10 รูป</option>
+            <option value={20}>20 รูป</option>
+            <option value={30}>30 รูป</option>
+            <option value={50}>ทั้งหมด</option>
+          </select>
+        </div>
+
       </div>
     </nav>
   );
