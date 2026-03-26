@@ -1,8 +1,20 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
 model Image {
   id        String   @id @default(uuid())
   url       String   // URL จาก placehold.co
-  width     Int      // เพื่อทำ Layout ไม่เท่ากัน
-  height    Int
-  hashtags  String[] // เก็บเป็น Array ของคำสำคัญ
+  width     Int      // เก็บความกว้างเพื่อทำ Layout
+  height    Int      // เก็บความสูงเพื่อทำ Layout
+  hashtags  String[] // เก็บเป็น Array ของ String สำหรับค้นหา
   createdAt DateTime @default(now())
+
+  @@index([hashtags]) // ทำ Index เพื่อให้การ Filter (โจทย์ข้อ 4) ทำงานเร็วขึ้น
 }
