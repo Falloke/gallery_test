@@ -1,0 +1,8 @@
+model Image {
+  id        String   @id @default(uuid())
+  url       String   // URL จาก placehold.co
+  width     Int      // เพื่อทำ Layout ไม่เท่ากัน
+  height    Int
+  hashtags  String[] // เก็บเป็น Array ของคำสำคัญ
+  createdAt DateTime @default(now())
+}
